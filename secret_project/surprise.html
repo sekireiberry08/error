@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Surprise Visual Novel</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background-color: #ffe6f0;
+      font-family: "Segoe UI", sans-serif;
+      color: #880e4f;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    .container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+      background: url("bg.jpg") no-repeat center center/cover;
+    }
+
+    .character {
+      position: absolute;
+      bottom: 180px;
+      left: 50%;
+      transform: translateX(-50%);
+      max-height: 50%;
+      object-fit: contain;
+      transition: opacity 0.5s ease-in-out;
+    }
+
+    .background-blur-img {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      width: 80vw;
+      max-height: 80vh;
+      filter: blur(10px) brightness(1.2);
+      z-index: 1;
+      pointer-events: none;
+      opacity: 0.6;
+    }
+    .character {
+      z-index: 2; /* nhân vật nằm trên */
+    }
+    .dialogue-box {
+      z-index: 3;
+    }
+
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      transform: scale(0);
+      animation: ripple-animation 0.6s linear;
+      background: rgba(255, 105, 180, 0.4); /* hồng pastel nhẹ */
+      pointer-events: none;
+      z-index: 10;
+    }
+
+    @keyframes ripple-animation {
+      to {
+        transform: scale(6);
+        opacity: 0;
+      }
+    }
+
+    .dialogue-box {
+      position: absolute;
+      bottom: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(255, 240, 245, 0.95);
+      padding: 20px 30px;
+      width: 80%;
+      max-width: 600px;
+      border-radius: 20px;
+      box-shadow: 0 5px 20px rgba(255, 105, 180, 0.3);
+    }
+
+    .dialogue-line {
+      font-size: 1.2rem;
+      line-height: 1.6;
+      white-space: pre-wrap;
+      min-height: 1.5em;
+    }
+
+    #continue-indicator {
+      position: absolute;
+      bottom: 15px;
+      left: 50%;
+      transform: translateX(-50%);
+      color: #d63384;
+      font-size: 1rem;
+      font-style: italic;
+      display: none;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0; }
+    }
+
+    #choices {
+      display: none;
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      z-index: 5;
+    }
+
+    audio {
+      display: none;
+    }
+
+    .twinkle {
+      position: absolute;
+      width: 2px;
+      height: 2px;
+      background: white;
+      opacity: 0.7;
+      border-radius: 50%;
+      animation: twinkle 2s infinite ease-in-out;
+    }
+
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.4); }
+    }
+
+    .fullscreen-img {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      object-fit: cover;
+      z-index: 4;
+      display: none;
+    }
+
+  </style>
+</head>
+<body onclick="nextScene()">
+  <audio id="bgm" autoplay loop>
+    <source src="bgm.mp3" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+
+  <div class="container">
+    <img id="character-img" class="character" src="pic1.jpg" alt="Character" />
+    <img id="bg-blur" class="background-blur-img" src="" alt="Blurred background" />
+    <img id="fullscreen-img" class="fullscreen-img" src="" alt="Fullscreen" />
+    <div class="dialogue-box" id="dialogue-box">
+      <p id="dialogue-line" class="dialogue-line"></p>
+      <p id="continue-indicator">Ấn để tiếp tục...</p>
+    </div>
+    <div id="choices"></div>
+  </div>
+
+  <script>
+    const scenes = {
+      s1: {
+        img: "pic1.png",
+        lines: ["Gửi Ngọc Trâm – “Ran Moriii” của anh,"],
+        next: "s2"
+      },
+      s2: {
+        img: "pic2.png",
+        lines: [
+          "Hôm nay là một ngày thật đặc biệt – 500 ngày kể từ khi anh và em chính thức bước vào cuộc đời của nhau.",
+          "500 ngày không quá dài so với cả một đời người, nhưng với anh, đó là 500 ngày anh được sống trọn vẹn nhất, ấm áp nhất và hạnh phúc nhất."
+        ],
+        next: "s3"
+      },
+      s3: {
+        img: "pic3.png",
+        lines: [
+          "Anh vẫn nhớ như in ngày đầu tiên anh để ý đến em, đến giọng voice có khi đầy quyến rũ, có khi lại nhí nhảnh đáng yêu.",
+          "Thật sự em đã chạm phải trái tim anh ngay từ khi em chấp nhận lời mời kết bạn."
+        ],
+        next: "s4"
+      },
+      s4: {
+        img: "pic4.png",
+        lines: [
+          "Rồi còn nhớ những lần chở nhau vi vu khắp Sài Gòn dưới mưa, những buổi tối dài trò chuyện chẳng biết chán...",
+          "Hay những lúc giận dỗi vu vơ rồi cái tôi anh lại giở chứng cao hơn chiều cao của anh =))))))…",
+          "Tất cả đều là những mảnh ghép tuyệt vời nhất trong cuộc đời anh."
+        ],
+        next: "s5"
+      },
+      s5: {
+        img: "pic5.png",
+        lines: [
+          "Em biết không? Mỗi sáng thức dậy, anh đều thầm cảm ơn vì em đã ở bên anh.",
+          "Yêu không phải là tìm kiếm một người hoàn hảo, mà là thấy sự hoàn hảo trong một người không hoàn hảo như em."
+        ],
+        next: "s6"
+      },
+      s6: {
+        img: "pic6.png",
+        lines: [
+          "500 ngày qua, chúng ta đã cùng nhau trải qua bao nhiêu cung bậc cảm xúc.",
+          "Dù 500 ngày hay 50 năm nữa, tay em vẫn sẽ trong tay anh, cùng nhau đi qua những thăng trầm.",
+          "Anh biết em vẫn yêu anh bằng cả trái tim, và việc của anh là nắm tay em đến lễ đường chúng ta mong ước."
+        ],
+        next: "s7"
+      },
+      s7: {
+        img: "pic1.png",
+        lines: [
+          "Cảm ơn em vì đã chọn anh. Dù đôi khi anh còn vụng về...",
+          "Anh hứa sẽ luôn cố gắng hết sức để em không bao giờ hối hận khi đã trao trái tim cho anh.",
+          "Tên coder kiêm thám tử buồn ngủ của em bé, Quốc An."
+        ],
+        next: "s8"
+      },
+      s8: {
+        img: "pic7.png",
+        lines: ["Em có muốn cùng anh đi hết chặng đường tương lai trong suốt thời gian tới không?"],
+        choices: [
+          { text: "Tất nhiên là có rất nhiều rồiiii", next: "love1" },
+          { text: "Có chứ, đồ ngốc!", next: "love2" },
+          { text: "Không... 😅", next: "joke" }
+        ]
+      },
+      love1: {
+        img: "pic1.png",
+        lines: ["Yesssss, anh cũng yêu em rất nhiều ❤️"],
+        next: "ending"
+      },
+      love2: {
+        img: "pic1.png",
+        lines: ["Muaheheee anh cũng yêu em lắm á ❤️"],
+        next: "ending"
+      },
+      joke: {
+        img: "pic8.png",
+        lines: ["Anh tin em sẽ không chọn lựa chọn này đúng không...? 🥺"],
+        next: "ending"
+      },
+      ending: {
+        img: "ending_bg.jpg",
+        lines: ["🎉 Happy 500 days anniversary! 🎉"],
+        choices: [
+          { text: "💌 Ấn để xem toàn bộ thư do anh viết", next: "letter" }
+        ]
+      },
+      letter: {
+        img: "letter.jpg",
+        lines: [],
+      }
+    };
+
+    let currentSceneId = "s1";
+    let currentLine = 0;
+    let typing = false;
+
+    const characterImg = document.getElementById("character-img");
+    const dialogueLine = document.getElementById("dialogue-line");
+    const continueIndicator = document.getElementById("continue-indicator");
+
+    let currentText = "";   // Lưu câu hiện tại
+    let typeInterval = null; // Lưu interval để có thể dừng lại
+
+    function typeText(text, callback) {
+      typing = true;
+      currentText = text;             // Lưu lại toàn bộ câu
+      dialogueLine.textContent = "";
+      continueIndicator.style.display = "none";
+      let index = 0;
+
+      clearInterval(typeInterval);    // Dừng mọi interval cũ
+      typeInterval = setInterval(() => {
+        if (index < text.length) {
+          dialogueLine.textContent += text.charAt(index);
+          index++;
+        } else {
+          clearInterval(typeInterval);
+          typing = false;
+          continueIndicator.style.display = "block";
+          if (callback) callback();
+        }
+      }, 40);
+    }
+
+
+    function showScene(id) {
+      currentSceneId = id;
+      currentLine = 0;
+      const scene = scenes[id];
+
+      characterImg.src = scene.img;
+      characterImg.style.display = "block";
+      document.getElementById("fullscreen-img").style.display = "none";
+
+      if (id === "ending" || id === "letter") {
+        // Fullscreen image
+        document.getElementById("fullscreen-img").src = scene.img;
+        document.getElementById("fullscreen-img").style.display = "block";
+        characterImg.style.display = "none";
+        document.getElementById("dialogue-box").style.display = "none";
+      } else {
+        document.getElementById("dialogue-box").style.display = "block";
+      }
+
+      if (scene.lines && scene.lines.length > 0) {
+        typeText(scene.lines[0]);
+      } else {
+        dialogueLine.textContent = "";
+        continueIndicator.style.display = "none";
+      }
+
+      document.getElementById("choices").style.display = "none";
+      document.getElementById("choices").innerHTML = "";
+    }
+
+    document.body.addEventListener("click", function (e) {
+      const ripple = document.createElement("div");
+      ripple.className = "ripple";
+      ripple.style.left = `${e.clientX}px`;
+      ripple.style.top = `${e.clientY}px`;
+      ripple.style.width = ripple.style.height = "100px";
+      document.body.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
+    });
+
+
+    function nextScene() {
+      const scene = scenes[currentSceneId];
+
+      if (typing) {
+        clearInterval(typeInterval);            // Dừng typing
+        dialogueLine.textContent = currentText; // Hiện hết câu
+        typing = false;
+        continueIndicator.style.display = "block";
+        return;
+      }
+
+      continueIndicator.style.display = "none";
+
+      if (currentLine < scene.lines.length - 1) {
+        currentLine++;
+        typeText(scene.lines[currentLine]);
+      } else if (scene.choices) {
+        showChoices(scene.choices);
+      } else if (scene.next) {
+        showScene(scene.next);
+      }
+    }
+
+
+    function createStars() {
+      for (let i = 0; i < 80; i++) {
+        const star = document.createElement("div");
+        star.className = "twinkle";
+        star.style.top = `${Math.random() * 100}vh`;
+        star.style.left = `${Math.random() * 100}vw`;
+        star.style.animationDelay = `${Math.random() * 3}s`;
+        star.style.zIndex = 0;
+        document.body.appendChild(star);
+      }
+    }
+
+    function showChoices(choices) {
+      const container = document.getElementById("choices");
+      container.style.display = "block";
+      container.innerHTML = "";
+
+      choices.forEach(choice => {
+        const btn = document.createElement("button");
+        btn.textContent = choice.text;
+        btn.style.margin = "10px";
+        btn.style.padding = "10px 20px";
+        btn.style.fontSize = "1rem";
+        btn.style.borderRadius = "10px";
+        btn.style.background = "#ff99cc";
+        btn.style.border = "none";
+        btn.style.color = "#fff";
+        btn.style.cursor = "pointer";
+        btn.onclick = () => {
+          container.style.display = "none";
+          showScene(choice.next);
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    window.onload = () => {
+      document.getElementById("bgm").volume = 0.4;
+      createStars();
+      showScene("s1");
+    };
+  </script>
+</body>
+</html>
+ <!--Tên ảnh	Mục đích
+pic1.jpg	Mở đầu thư gửi Ngọc Trâm
+pic2.jpg	Kỷ niệm 500 ngày yêu nhau
+pic3.jpg	Nhớ lần đầu voice
+pic4.jpg	Nhớ các kỷ niệm dỗi hờn
+pic5.jpg	Lời cảm ơn và yêu thương
+pic6.jpg	Lời hứa dài lâu
+pic7.jpg	Tỏ tình + lựa chọn-->

@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BẠN LÀ NGƯỜI MAY MẮN NHẤT HÔM NAY!!!!!</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: linear-gradient(to bottom right, #fffbe6, #ffeaea);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      text-align: center;
+    }
+
+    .container {
+      background-color: #fff;
+      padding: 30px 20px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+      width: 90%;
+      max-width: 360px;
+    }
+
+    h1 {
+      color: #d40000;
+      font-size: 20px;
+      margin-bottom: 10px;
+    }
+
+    p {
+      color: #555;
+      font-size: 14px;
+    }
+
+    input {
+      width: 90%;
+      padding: 12px;
+      margin-top: 16px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-size: 14px;
+    }
+
+    button {
+      margin-top: 16px;
+      padding: 12px 24px;
+      background-color: #ff3d00;
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    .error {
+      color: red;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .hint-box {
+      display: none;
+      margin-top: 16px;
+      background-color: #fffbe6;
+      border: 1px solid #ffc107;
+      padding: 15px;
+      border-radius: 8px;
+      font-size: 13px;
+      color: #5c3900;
+      animation: fadeIn 0.5s ease forwards;
+    }
+
+    #hintLine2 {
+      display: none;
+      margin-top: 8px;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    #scaryAlert {
+      display: none;
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.9);
+      color: white;
+      z-index: 999;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      animation: fadeIn 0.5s ease;
+    }
+
+    #scaryAlert img {
+      max-width: 200px;
+      margin-top: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(255, 0, 0, 0.6);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <h1>🎁 CHÚC MỪNG BẠN!</h1>
+  <p>Bạn đã được chọn ngẫu nhiên trong số 2.000.000 người để nhận <strong>một phần quà giải đặc biệt</strong> từ hệ thống hôm nay.</p>
+  <p>Vui lòng nhập mã xác nhận để mở khóa phần quà bên trong:</p>
+  <input type="password" id="giftCode" placeholder="Nhập mã nhận quà...">
+  <button onclick="checkCode()">Xác nhận</button>
+  <div id="error" class="error"></div>
+  <div id="hint" class="hint-box">
+    Hệ thống đã ghi nhận địa chỉ nhà và địa chỉ IP thiết bị của bạn.
+    <div id="hintLine2">Để đảm bảo bạn là chủ nhân món quà, vui lòng nhập <strong>ngày bạn và bạn trai bạn bắt đầu hẹn hò với nhau theo định dạng ddmmyyyy!</strong></div>
+  </div>
+</div>
+
+<!-- Phần cảnh báo "đáng sợ" -->
+<div id="scaryAlert">
+  <h2>CẢNH BÁO!</h2>
+  <p>Có phải bạn đã nhận được mã này từ một người dùng tên là <strong>sekireiberry08</strong> không?</p>
+  <img src="sekireiberry08.jpg" alt="Người khả nghi">
+</div>
+
+<script>
+  const correctCode = "22022024";
+  const suspiciousCode = "6Z7SJTPHEC";
+  let attempts = 0;
+
+  function checkCode() {
+    const input = document.getElementById("giftCode").value.trim();
+    const error = document.getElementById("error");
+    const hintBox = document.getElementById("hint");
+    const hintLine2 = document.getElementById("hintLine2");
+    const scaryAlert = document.getElementById("scaryAlert");
+
+    error.textContent = "";
+
+    if (input === correctCode) {
+      window.location.href = "surprise.html";
+    } else if (input === suspiciousCode) {
+      scaryAlert.style.display = "flex";
+
+      setTimeout(() => {
+        scaryAlert.style.display = "none";
+        hintBox.style.display = "block";
+
+        setTimeout(() => {
+          hintLine2.style.display = "block";
+        }, 3000);
+      }, 3000); // 3 giây hiển thị cảnh báo
+    } else {
+      attempts++;
+      error.textContent = "Mã xác nhận không hợp lệ. Vui lòng thử lại.";
+      if (attempts >= 3) {
+        hintBox.style.display = "block";
+        setTimeout(() => {
+          hintLine2.style.display = "block";
+        }, 3000);
+      }
+    }
+  }
+
+  document.addEventListener("keydown", function(e) {
+    if (e.key === "Enter") {
+      checkCode();
+    }
+  });
+</script>
+
+</body>
+</html>
